@@ -51,8 +51,7 @@
       button.classList.toggle('selected', selected);
       button.setAttribute('aria-pressed', selected);
     });
-    document.querySelector('#result-count').textContent = count;
-    document.querySelector('#collection-title').firstChild.textContent = (category || '全部笔记') + ' ';
+    document.querySelector('#collection-title').textContent = category || '全部笔记';
     document.querySelector('#empty').hidden = count !== 0;
     document.querySelectorAll('.folder').forEach(a => a.classList.toggle('active', new URL(a.href).searchParams.get('category') === category));
   }

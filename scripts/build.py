@@ -84,10 +84,10 @@ def plain(value):
     return html.unescape(re.sub('<[^>]+>', ' ', value))
 
 def shell(title, body, active='', toc=''):
-    nav = ''.join(f'<a class="folder {"active" if c == active else ""}" href="/?category={quote(c)}"><span>▱ &nbsp;{esc(c)}</span><small>{sum(n["category"] == c for n in records):02}</small></a>' for c in categories)
     return f'''<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="description" content="Elysiason 的学习笔记，记录、连接与理解。"><title>{esc(title)} · Elysiason</title><link rel="icon" href="/assets/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/style.css"><link rel="stylesheet" href="/lib/katex/{katex_css}"><script src="/assets/app.js" defer></script><script src="/assets/katex.js" defer></script></head>
-<body><aside class="sidebar"><a class="brand" href="/"><span class="brand-icon">E.</span><span>Elysiason<small>LEARNING NOTEBOOK</small></span></a><div class="side-intro">把学过的知识，<br>变成自己的理解。</div><a class="all-link" href="/">▦ &nbsp; 全部笔记 <small>{len(records):02}</small></a><div class="nav-label">知识分类</div><nav aria-label="笔记分类">{nav}</nav><div class="side-bottom"><span class="status-dot"></span> 持续学习，慢慢积累<a href="https://github.com/Elysiason/Elysiason.github.io">GitHub ↗</a></div></aside><div class="workspace"><header class="topbar"><span>个人知识库 <span class="muted">/ &nbsp; 学习笔记</span></span><button id="theme" class="icon-button" aria-label="切换深色模式">◐</button></header>{body}<footer>写下来，是理解的开始。<span>ELYSiASON / NOTES</span></footer></div>{toc}</body></html>'''
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="description" content="Elysiason 的学习笔记"><title>{esc(title)} · Elysiason</title><link rel="icon" href="/assets/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/style.css"><link rel="stylesheet" href="/lib/katex/{katex_css}"><script src="/assets/app.js" defer></script><script src="/assets/katex.js" defer></script></head>
+<body><header class="site-header"><a class="brand" href="/">Elysiason</a><nav aria-label="主导航"><a href="/">笔记</a><a href="https://github.com/Elysiason/Elysiason.github.io">GitHub</a><button id="theme" class="icon-button" aria-label="切换深色模式">◐</button></nav></header>{body}</body></html>'''
+
 
 def build():
     global records, categories, katex_css
@@ -131,16 +131,16 @@ def build():
             target = OUT / 'content' / source.relative_to(NOTES)
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
-    cards = ''.join(f'<a class="note-card" href="{n["url"]}"><span class="card-category">{esc(n["category"])}</span><h2>{esc(n["title"])}</h2><p>{esc(n["excerpt"])}</p><div class="card-bottom"><span>{n["minutes"]} 分钟阅读</span><span>阅读笔记 ↗</span></div></a>' for n in records)
-    home = f'''<main class="home"><section class="hero"><div class="eyebrow">THE GARDEN OF KNOWLEDGE</div><h1>记录所学，<br>让知识<span>生长。</span></h1><p>一些思考，一些探索，一点点积累。<br>在这里，把零散的知识连接成自己的地图。</p><div class="hero-stats"><strong>{len(records):02}</strong> 篇笔记 <i></i><strong>{len(categories):02}</strong> 个分类</div><div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><span class="art-dot"></span><span class="art-star">✳</span><span class="art-caption">STAY CURIOUS.<br>KEEP GROWING.</span></div></section><section class="collection"><div class="collection-top"><div><div class="eyebrow">EXPLORE THE NOTES</div><h2 id="collection-title">全部笔记 <span id="result-count">{len(records)}</span></h2></div><label class="search"><span>⌕</span><input id="search" type="search" placeholder="搜索标题或笔记内容…" aria-label="搜索笔记"><kbd>/</kbd></label></div><div class="filters" id="filters"><button data-category="" class="selected">全部</button>{''.join(f'<button data-category="{esc(c)}">{esc(c)}</button>' for c in categories)}</div><div id="notes-grid" class="notes-grid">{cards}</div><p id="empty" hidden>没有找到相关笔记，试试其他关键词。</p><p class="collection-end">每一篇笔记，都是理解世界的一小步。</p></section></main>'''
+    cards = ''.join(f'<a class="note-card" href="{n["url"]}"><h2>{esc(n["title"])}</h2><span class="card-category">{esc(n["category"])}</span></a>' for n in records)
+    home = f'''<main class="home"><div class="collection-top"><h1 id="collection-title">全部笔记</h1><input id="search" type="search" placeholder="搜索笔记" aria-label="搜索笔记"></div><nav class="filters" id="filters" aria-label="笔记分类"><button data-category="" class="selected">全部</button>{''.join(f'<button data-category="{esc(c)}">{esc(c)}</button>' for c in categories)}</nav><div id="notes-grid" class="notes-grid">{cards}</div><p id="empty" hidden>没有找到相关笔记。</p></main>'''
     (OUT / 'index.html').write_text(shell('学习笔记', home), encoding='utf-8')
     for n in records:
-        body = f'<main class="reading"><a class="back" href="/?category={quote(n["category"])}">← 返回 {esc(n["category"])}</a><div class="eyebrow">{esc(n["category"])}</div><h1>{esc(n["title"])}</h1><div class="reading-meta">{n["minutes"]} 分钟阅读 <span>·</span> {esc(n["path"])}</div><div class="article-layout"><article class="prose">{n["body"]}</article><aside class="toc-panel"><div class="nav-label">本页目录</div>{n["toc"]}<a class="to-top" href="#">↑ 回到顶部</a></aside></div></main>'
+        body = f'<main class="reading"><a class="back" href="/?category={quote(n["category"])}">← {esc(n["category"])}</a><h1>{esc(n["title"])}</h1><div class="article-layout"><article class="prose">{n["body"]}</article><aside class="toc-panel"><div>目录</div>{n["toc"]}</aside></div></main>'
         target = OUT / 'read' / Path(n['path']).with_suffix('.html')
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(shell(n['title'], body, n['category']), encoding='utf-8')
     (OUT / 'search.json').write_text(json.dumps([{k:v for k,v in n.items() if k not in ('body','toc')} for n in records], ensure_ascii=False), encoding='utf-8')
-    (OUT / '404.html').write_text(shell('页面未找到', '<main class="reading"><div class="eyebrow">404 / NOT FOUND</div><h1>这页笔记还没有写下。</h1><a href="/">← 返回全部笔记</a></main>'), encoding='utf-8')
+    (OUT / '404.html').write_text(shell('页面未找到', '<main class="reading"><h1>页面未找到</h1><a href="/">← 返回全部笔记</a></main>'), encoding='utf-8')
     (OUT / '.nojekyll').touch()
     for old, new in {'post/first': '随记/First.md', 'post/jacobi-method': '数值分析/Jacobi Method.md'}.items():
         if Path(new) in known:
